@@ -1,7 +1,7 @@
 # fractal-launcher
 - Mandelblot
-- Buddahabrot
-- Flactal generator
+- Buddhabrot
+- Fractal generator
 - Cellular automaton(1-dim)
 
 ## Dependence
