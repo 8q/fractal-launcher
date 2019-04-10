@@ -1,9 +1,7 @@
 package fractallauncher.buddhabrot;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 
@@ -32,19 +30,16 @@ class BuddhabrotGenerator {
         double x = -2.0d, y = -2.0d, x2 = 2.0d, y2 = 2.0d;
         PImage image = pa.createImage(pa.width, pa.height, PApplet.ARGB);
         image.loadPixels();
-        Map<Integer, Double> alphaMap = new HashMap<>();
+        double[] alphas = new double[pa.width * pa.height];
         for (int i = 0; i < pa.width * pa.height; i++) {
             image.pixels[i] = pa.color(pa.red(color), pa.green(color), pa.blue(color), 0); //RGBA
-            alphaMap.put(i, 0.0d);
+            alphas[i] = 0.0d;
         }
-
-        // TODO: alphaMapの配列化
 
         IntStream.range(0, threadNum).parallel().forEach(tNumber -> {
             LongStream.range(0, r).filter(i -> i % threadNum == tNumber).forEach(i -> {
                 double a = Utils.map(pa.random(pa.width), 0, pa.width, x, x2);
                 double b = Utils.map(pa.random(pa.height), 0, pa.height, y, y2);
-
                 for (Complex c : !isAntiMode ? buddhabrotCalc(a, b, n) : antiBuddhabrotCalc(a, b, n)) {
                     double posx = c.getReal();
                     double posy = c.getImaginary();
@@ -54,15 +49,15 @@ class BuddhabrotGenerator {
                     int h = (int) Utils.map(c.getImaginary(), y, y2, 0, pa.height);
 
                     int index = h * pa.width + w;
-                    double alpha = alphaMap.get(index) + alphaDiff;
-                    alphaMap.put(index, alpha);
-                    image.pixels[index] = pa.color(pa.red(color), pa.green(color), pa.blue(color), (int) alpha);
+                    alphas[index] += alphaDiff;
+                    image.pixels[index] = pa.color(pa.red(color), pa.green(color), pa.blue(color), (int) alphas[index]);
                 }
                 if (tNumber == 0 && i % (r / 1000) == 0) {
                     PApplet.println(String.format("%.2f%%", 100.0d * i / r));
                 }
             });
         });
+
         PApplet.println(String.format("%.2f%%", 100.0d));
         image.updatePixels();
         return image;
